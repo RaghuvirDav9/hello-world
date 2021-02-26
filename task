@@ -1,0 +1,82 @@
+
+January
+--------
+Week-4 (Master DB(SQL type - postgres in my opinion)) evrything should be done via psql
+----------------------------------------------------------------------------------------------
+Day1:(every query should be in sql file so that I can review and we can replicate it anywhere)
+Run postgrer engine version 11 in your machine using docker, create two roles one role should be able to write and read another role should just read not write access to DB.
+Read about roles and permissions. Now create one table with 5 to 10 columns(one column must be of type date) of various data types in postgres. Read about difference between text and character varying, smallint vs int.
+In above table load  30 GB(dates should be in series like for last 10 years) of data.
+Query the data from this table. See the timings and look at query plan.
+
+Day2:
+I will explain in short(or will give you link) why the query on 30 GB table is slow.
+We will create an index which will help to query the table bit quick.
+We will crete an index which help queries to run faster if the date in the query is for latest year.
+Now see the query plan and compare it with day1s result.
+
+Day3:
+We will partition the table for lastest years data and will see the query performance.
+We will cluster the table and will see the query results.
+
+Day4:
+Read about JOINS. Create another table with 5 columns.
+Use every join and see how the result are changing with the JOIN type.
+Read about window function(ROW_NUMBER()) and create one query to do the practical.
+Read about NULLIF funtion and do the practice. Read about CASE WHEN and do the practice by creating a view on top of the 2 tables by using join.
+
+Day5:
+read about pg_dump and pg_restore utility.
+Do the practical. pg dump ddl+data and pg dump just data.
+
+February
+----------------------------------------------------------------------------------------------------------------------------
+Week-1 (Master AWS batch and cludwatch rule) everything should be done via cloudformation file(.yaml) - so that we can reuse
+----------------------------------------------------------------------------------------------------------------------------
+Using cloudformation create RDS postgres db with minimum resources. USe .sql script to create users for read and write.
+Create a batch compute env, queue and the job definition using cloudformation. Create a cloudwatch rule to trigger the batch
+job every day at 11 AM and that batch job should write 100 records to RDS instance everyday.
+
+Week-2 (Master python3 and git) everything should be in proper project structure on git
+---------------------------------------------------------------------------------------------------------------------
+Create AWS lamda function in python, the python code should read a 3 gb file from s3 and print the data from file.
+We will be in sync - this is not easy as you think :)
+
+Week-3 (master architectures and cloud concept) (you have to do presentation on working saturday)
+-----------------------------------------------------------------------------------------------------------------------
+read about difference between microservices and monolithic architecture, give and scenario where we can use  each.
+read about advantage and disadvantage of paas,saas and iaas. I want to know examples of them with respect to AWS cloud.
+Consider you need to build and ecommerce website, decide what services of AWS you will use and why. I want to save my money as much as possible.
+
+Week-4(start interacting with Nayan Gajjar or any team who is doing python project)
+----------------------------------------------------------------------------------------------------------------
+understand the project, understand day to day work they do.
+Ask them if they have any slow DB queries or slow python code - improve it in your local machine and give them explanation about why it was slow and how we improved it.
+If they dont have any problem in the project(they should have actually), estimate their project s cost on infrastructure, now prepare cloud architecture for same project and
+convince them that cloud is more cheap and fast for that project.
+
+March (time to shine)
+---------------------------------------
+Week-1 (Understand devops and Jenkins)
+---------------------------------------------------------------
+Before this day I should explain you fundamentals of devops - follow up with me if I forget
+Install jenkins using docker
+Install postgres using jenkind in your teammates machine (Akshay or any idle machine in firm)
+if you can do it on EC-2 great.
+
+Week-2 (talk to Nayan gajjar or team try to help them with some deployment using jenkins where they do it manually currently)
+-------------------------------------------------------------------------------------------------------------------------------
+
+Week-3 & 4 (master your imagination)
+-------------------------------------
+Come up with a couple of project definitions which use AWS and python.
+I will chose one project and than you will execute it using AWS services and python.
+if time permits we will do devops pipeline for this project as well.
+
+Great if in march you cna prepare for AWS devops certification - but I would prefer that you learn terraform and do not do certifiation for now atleast.
+
+
+
+
+
+
