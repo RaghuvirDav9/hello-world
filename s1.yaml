@@ -1,0 +1,182 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Resources:
+  launchTemplate:
+    Type: AWS::EC2::LaunchTemplate
+    Properties:
+      LaunchTemplateData:
+        ImageId: ami-081bb417559035fe8
+        InstanceType: t2.micro
+        KeyName: new1
+        SecurityGroupIds:
+          - !GetAtt LTSG.GroupId
+        TagSpecifications:
+          - ResourceType: instance
+            Tags:
+              - Key: Name
+                Value: cfn_demo
+
+        UserData:
+          Fn::Base64:
+            !Sub |
+            #!/bin/bash
+            sudo yum update -y
+            sudo yum install -y httpd.x86_64
+            sudo systemctl start httpd.service
+            sudo systemctl enable httpd.service
+            sudo echo "hello from $(hostname -f)" > /var/www/html/index.html
+      LaunchTemplateName: cfn_launch_template
+
+
+  LTSG:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: SG for ec2 to allow http from LB SG
+      GroupName: SGForHTTp
+      SecurityGroupIngress:
+        - Description: allow http from everywhere
+          FromPort: 80
+          IpProtocol: tcp
+          SourceSecurityGroupId: !GetAtt LBSG.GroupId
+          ToPort: 80
+        - CidrIp: 0.0.0.0/0
+          Description: allow ssh from everywhere
+          FromPort: 22
+          IpProtocol: tcp
+          ToPort: 22
+      Tags:
+        - Key: Name
+          Value: allowHTTP
+
+
+
+  LBSG:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: SG for Load balancer to allow http
+      GroupName: SGForHTTpLB
+      SecurityGroupIngress:
+        - CidrIp: 0.0.0.0/0
+          Description: allow http from everywhere
+          FromPort: 80
+          IpProtocol: tcp
+          ToPort: 80
+      Tags:
+        - Key: Name
+          Value: allowHTTP
+
+  Ec21:
+    Type: AWS::EC2::Instance
+    Properties:
+      LaunchTemplate:
+        LaunchTemplateId: !Ref launchTemplate
+        Version: !GetAtt launchTemplate.LatestVersionNumber
+
+  Ec22:
+    Type: AWS::EC2::Instance
+    Properties:
+      LaunchTemplate:
+        LaunchTemplateId: !Ref launchTemplate
+        Version: !GetAtt launchTemplate.LatestVersionNumber
+
+  LoadBalancer:
+    Type: AWS::ElasticLoadBalancingV2::LoadBalancer
+    Properties:
+      Name: cfnALB
+      Scheme: internet-facing
+      SecurityGroups:
+        - !GetAtt LBSG.GroupId
+      SubnetMappings:
+        - SubnetId: subnet-78796110
+        - SubnetId: subnet-89df91c5
+      Type: application
+
+
+  listners:
+    Type: AWS::ElasticLoadBalancingV2::Listener
+    Properties:
+      DefaultActions:
+        - Order: 1
+          TargetGroupArn: !Ref TargetGroup
+          Type: forward
+      LoadBalancerArn: !Ref LoadBalancer
+      Port: 80
+      Protocol: HTTP
+
+
+  TargetGroup:
+    Type: AWS::ElasticLoadBalancingV2::TargetGroup
+    Properties:
+      HealthCheckEnabled: True
+      HealthCheckIntervalSeconds: 50
+      HealthCheckPath: /
+      HealthCheckPort: 80
+      HealthCheckProtocol: HTTP
+      HealthCheckTimeoutSeconds: 10
+      HealthyThresholdCount: 2
+      Name: cfnTG
+      Port: 80
+      Protocol: HTTP
+#      TargetGroupAttributes:
+#        - TargetGroupAttribute
+      Targets:
+        - Id: !Ref Ec21
+          Port: 80
+        - Id: !Ref Ec22
+          Port: 80
+
+      TargetType: instance
+      UnhealthyThresholdCount: 2
+      VpcId: vpc-73e81b18
+
+
+  ASG:
+    Type: AWS::AutoScaling::AutoScalingGroup
+    Properties:
+      AutoScalingGroupName: cfnASG
+      AvailabilityZones:
+        - ap-south-1a
+        - ap-south-1b
+
+      Cooldown: 30
+      DesiredCapacity: 2
+      HealthCheckGracePeriod: 10
+      HealthCheckType: ELB
+#      InstanceId: String
+#      LaunchConfigurationName: String
+      LaunchTemplate:
+        LaunchTemplateId: !Ref launchTemplate
+        Version: !GetAtt launchTemplate.LatestVersionNumber
+#      LoadBalancerNames:
+#        - String
+      MaxSize: 4
+      MinSize: 1
+      TargetGroupARNs:
+        - !Ref TargetGroup
+#      TerminationPolicies:
+#        - String
+      VPCZoneIdentifier:
+        - subnet-89df91c5
+        - subnet-78796110
+
+
+  scalingPolicy:
+    Type: AWS::AutoScaling::ScalingPolicy
+    Properties:
+
+      AutoScalingGroupName: !Ref ASG
+      EstimatedInstanceWarmup: 50
+      PolicyType: TargetTrackingScaling
+      TargetTrackingConfiguration:
+        CustomizedMetricSpecification:
+          MetricName: ASGAverageCPUUtilization
+          Namespace: CPUmatrix
+          Statistic: Average
+          Unit: Percent
+        TargetValue: 5
+
+
+
+
+
+
+
